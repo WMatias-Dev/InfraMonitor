@@ -14,7 +14,7 @@ O projeto já consegue trabalhar com:
 
 - CPU
 - Memória RAM
-- Disco
+- Ocupação de espaço em disco
 - Alertas automáticos
 - Relatórios em JSON e CSV
 - Rede
@@ -142,7 +142,7 @@ Este projeto foi pensado para o meu portfólio com foco em vagas de estágio Dev
 
 ## Alertas automáticos
 
-O agente gera alertas quando CPU, memória RAM ou disco ultrapassam os limites definidos em [config.json](config.json).
+O agente gera alertas quando CPU, memória RAM ou a ocupação de espaço em disco ultrapassam os limites definidos em [config.json](config.json).
 
 Se o arquivo não estiver disponível, o projeto continua funcionando com os valores padrão.
 
@@ -170,7 +170,7 @@ Próximas melhorias que fazem sentido para evoluir o projeto:
 - [ ] Melhor compatibilidade com Linux
 - [ ] Exportação de relatórios (JSON/CSV)
 - [ ] Monitoramento contínuo
-- [ ] Alertas de uso de recursos
+- [ ] Alertas mais específicos por métrica
 - [ ] Dockerização da aplicação
 - [ ] Testes automatizados
 

@@ -1,7 +1,7 @@
 from config import obter_configuracao
 
 
-def _obter_percentual_maximo_disco(registro_disco):
+def _obter_ocupacao_maxima_disco(registro_disco):
     if not registro_disco:
         return None, None
 
@@ -11,9 +11,11 @@ def _obter_percentual_maximo_disco(registro_disco):
 
     particao_maior = max(
         particoes,
-        key=lambda particao: particao.get("uso_percentual") if particao.get("uso_percentual") is not None else -1,
+        key=lambda particao: particao.get("ocupacao_percentual")
+        if particao.get("ocupacao_percentual") is not None
+        else -1,
     )
-    percentual = particao_maior.get("uso_percentual")
+    percentual = particao_maior.get("ocupacao_percentual")
 
     if percentual is None:
         return None, None
@@ -44,13 +46,30 @@ def obter_limites_alerta():
 def avaliar_alertas(registros, limites=None):
     from collectors import montar_registro
 
+    def _mensagem_alerta(nome_metrica, nivel):
+        if nome_metrica == "cpu":
+            return "Uso de CPU crítico identificado." if nivel == "CRITICAL" else "Uso de CPU elevado identificado."
+
+        if nome_metrica == "memoria":
+            return (
+                "Uso de memória RAM crítico identificado."
+                if nivel == "CRITICAL"
+                else "Uso de memória RAM elevado identificado."
+            )
+
+        return (
+            "Ocupação de espaço em disco crítica identificada."
+            if nivel == "CRITICAL"
+            else "Ocupação de espaço em disco elevada identificada."
+        )
+
     limites = limites or obter_limites_alerta()
 
     cpu = next((registro for registro in registros if registro["metrica"] == "cpu"), None)
     memoria = next((registro for registro in registros if registro["metrica"] == "memoria"), None)
     disco = next((registro for registro in registros if registro["metrica"] == "disco"), None)
 
-    disco_percentual, disco_particao = _obter_percentual_maximo_disco(disco)
+    disco_percentual, disco_particao = _obter_ocupacao_maxima_disco(disco)
 
     metricas = [
         ("cpu", cpu["valor"].get("uso_percentual") if cpu else None, limites.get("cpu", {}), None),
@@ -71,19 +90,19 @@ def avaliar_alertas(registros, limites=None):
             nivel = "CRITICAL"
             status = "CRITICO"
             limite_disparado = limite_critico
-            mensagem = f"Uso crítico de {nome_metrica} identificado."
+            mensagem = _mensagem_alerta(nome_metrica, nivel)
         elif limite_warning is not None and percentual >= limite_warning:
             nivel = "WARNING"
             status = "ATENCAO"
             limite_disparado = limite_warning
-            mensagem = f"Uso elevado de {nome_metrica} identificado."
+            mensagem = _mensagem_alerta(nome_metrica, nivel)
         else:
             continue
 
         valor = {
             "status": status,
             "mensagem": mensagem,
-            "uso_percentual": percentual,
+            "ocupacao_percentual" if nome_metrica == "disco" else "uso_percentual": percentual,
             "limite_disparado": limite_disparado,
             "limites": {
                 "warning": limite_warning,
@@ -109,6 +128,19 @@ def avaliar_alertas(registros, limites=None):
 def resumir_metricas(registros):
     from collectors import montar_registro
 
+    def _mensagem_resumo(nome_metrica, nivel):
+        if nome_metrica == "cpu":
+            return "Uso de CPU crítico." if nivel == "CRITICAL" else "Uso de CPU elevado."
+
+        if nome_metrica == "memoria":
+            return "Uso de memória RAM crítico." if nivel == "CRITICAL" else "Uso de memória RAM elevado."
+
+        return (
+            "Ocupação de espaço em disco crítica."
+            if nivel == "CRITICAL"
+            else "Ocupação de espaço em disco elevada."
+        )
+
     cpu = next((registro for registro in registros if registro["metrica"] == "cpu"), None)
     memoria = next((registro for registro in registros if registro["metrica"] == "memoria"), None)
     disco = next((registro for registro in registros if registro["metrica"] == "disco"), None)
@@ -118,12 +150,15 @@ def resumir_metricas(registros):
 
     disco_percentual = None
     if disco:
-        disco_percentual, _ = _obter_percentual_maximo_disco(disco)
+        disco_percentual, _ = _obter_ocupacao_maxima_disco(disco)
 
-    maior_percentual = max(
-        [valor for valor in [cpu_percentual, memoria_percentual, disco_percentual] if valor is not None],
-        default=None,
-    )
+    metricas_validas = [
+        ("cpu", cpu_percentual),
+        ("memoria", memoria_percentual),
+        ("disco", disco_percentual),
+    ]
+    metricas_validas = [item for item in metricas_validas if item[1] is not None]
+    maior_nome, maior_percentual = max(metricas_validas, key=lambda item: item[1], default=(None, None))
 
     if maior_percentual is None:
         nivel = "INFO"
@@ -132,11 +167,11 @@ def resumir_metricas(registros):
     elif maior_percentual >= 90:
         nivel = "CRITICAL"
         status = "CRITICO"
-        mensagem = "Sistema com uso crítico de recursos."
+        mensagem = _mensagem_resumo(maior_nome, nivel)
     elif maior_percentual >= 75:
         nivel = "WARNING"
         status = "ATENCAO"
-        mensagem = "Sistema com uso elevado de recursos."
+        mensagem = _mensagem_resumo(maior_nome, nivel)
     else:
         nivel = "INFO"
         status = "OK"
@@ -150,7 +185,7 @@ def resumir_metricas(registros):
             "mensagem": mensagem,
             "cpu_percentual": cpu_percentual,
             "memoria_percentual": memoria_percentual,
-            "disco_percentual_maximo": disco_percentual,
+            "ocupacao_percentual_maxima_disco": disco_percentual,
         },
         {"origem": "resumo_automatico"},
     )

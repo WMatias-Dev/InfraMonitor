@@ -109,7 +109,7 @@ def coletar_disco():
                         "total": formatar_bytes(uso.total),
                         "usado": formatar_bytes(uso.used),
                         "livre": formatar_bytes(uso.free),
-                        "uso_percentual": uso.percent,
+                        "ocupacao_percentual": uso.percent,
                     }
                 )
 

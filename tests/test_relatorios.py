@@ -45,7 +45,10 @@ class GeracaoRelatoriosTestCase(unittest.TestCase):
     def test_gera_relatorio_csv_com_colunas_padrao(self):
         registros = [
             montar_registro("cpu", {"uso_percentual": 42}),
-            montar_registro("disco", {"particoes": [{"particao": "/dev/sda1", "uso_percentual": 72}]}),
+            montar_registro(
+                "disco",
+                {"particoes": [{"particao": "/dev/sda1", "ocupacao_percentual": 72}]},
+            ),
         ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -59,7 +62,7 @@ class GeracaoRelatoriosTestCase(unittest.TestCase):
 
         self.assertEqual(len(linhas), 2)
         self.assertEqual(linhas[0]["metrica"], "cpu")
-        self.assertIn("uso_percentual", linhas[1]["valor"])
+        self.assertIn("ocupacao_percentual", linhas[1]["valor"])
 
     def test_gera_relatorios_cria_json_e_csv(self):
         registros = [montar_registro("cpu", {"uso_percentual": 50})]

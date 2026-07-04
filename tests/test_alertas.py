@@ -29,8 +29,8 @@ class AvaliarAlertasTestCase(unittest.TestCase):
                 "disco",
                 {
                     "particoes": [
-                        {"particao": "/dev/sda1", "uso_percentual": 60},
-                        {"particao": "/dev/sda2", "uso_percentual": 62},
+                        {"particao": "/dev/sda1", "ocupacao_percentual": 60},
+                        {"particao": "/dev/sda2", "ocupacao_percentual": 62},
                     ]
                 },
             ),
@@ -52,8 +52,8 @@ class AvaliarAlertasTestCase(unittest.TestCase):
                 "disco",
                 {
                     "particoes": [
-                        {"particao": "/dev/sda1", "uso_percentual": 88},
-                        {"particao": "/dev/sda2", "uso_percentual": 91},
+                        {"particao": "/dev/sda1", "ocupacao_percentual": 88},
+                        {"particao": "/dev/sda2", "ocupacao_percentual": 91},
                     ]
                 },
             ),
@@ -71,13 +71,17 @@ class AvaliarAlertasTestCase(unittest.TestCase):
         self.assertEqual(alertas[0]["metrica"], "alerta_disco")
         self.assertEqual(alertas[0]["nivel"], "CRITICAL")
         self.assertEqual(alertas[0]["valor"]["particao"], "/dev/sda2")
-        self.assertEqual(alertas[0]["valor"]["uso_percentual"], 91)
+        self.assertEqual(alertas[0]["valor"]["ocupacao_percentual"], 91)
+        self.assertIn("Ocupação de espaço em disco", alertas[0]["valor"]["mensagem"])
 
     def test_gera_alerta_de_memoria_em_atencao(self):
         registros = [
             montar_registro("cpu", {"uso_percentual": 40}),
             montar_registro("memoria", {"uso_percentual": 78}),
-            montar_registro("disco", {"particoes": [{"particao": "/dev/sda1", "uso_percentual": 40}]}),
+            montar_registro(
+                "disco",
+                {"particoes": [{"particao": "/dev/sda1", "ocupacao_percentual": 40}]},
+            ),
         ]
 
         limites = {
@@ -92,6 +96,24 @@ class AvaliarAlertasTestCase(unittest.TestCase):
         self.assertEqual(alertas[0]["metrica"], "alerta_memoria")
         self.assertEqual(alertas[0]["nivel"], "WARNING")
         self.assertEqual(alertas[0]["valor"]["limite_disparado"], 75)
+
+    def test_resumo_indica_ocupacao_de_disco_quando_eh_o_maior_valor(self):
+        registros = [
+            montar_registro("cpu", {"uso_percentual": 25}),
+            montar_registro("memoria", {"uso_percentual": 35}),
+            montar_registro(
+                "disco",
+                {"particoes": [{"particao": "/dev/sda1", "ocupacao_percentual": 84}]},
+            ),
+        ]
+
+        from alerts import resumir_metricas
+
+        resumo = resumir_metricas(registros)
+
+        self.assertEqual(resumo["nivel"], "WARNING")
+        self.assertIn("Ocupação de espaço em disco", resumo["valor"]["mensagem"])
+        self.assertEqual(resumo["valor"]["ocupacao_percentual_maxima_disco"], 84)
 
 
 if __name__ == "__main__":
