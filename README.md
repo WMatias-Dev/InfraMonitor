@@ -127,16 +127,19 @@ Campos principais:
 
 ---
 
-## Objetivos do projeto
+## Funcionalidades
 
-Este projeto foi pensado para o meu portfólio com foco em vagas de estágio DevOps. Ele ajuda a demonstrar interesse prático em:
+✔ Coleta periódica
 
-- Linux
-- Infraestrutura
-- DevOps
-- Automação
-- Observabilidade
-- Python
+✔ Alertas
+
+✔ Relatórios
+
+✔ Logs
+
+✔ Configuração externa
+
+✔ Testes
 
 ---
 
@@ -145,6 +148,20 @@ Este projeto foi pensado para o meu portfólio com foco em vagas de estágio Dev
 O agente gera alertas quando CPU, memória RAM ou a ocupação de espaço em disco ultrapassam os limites definidos em [config.json](config.json).
 
 Se o arquivo não estiver disponível, o projeto continua funcionando com os valores padrão.
+
+---
+
+## Roadmap
+
+- [x] Coleta de CPU
+- [x] Coleta de memória
+- [x] Coleta de disco
+- [x] Logs estruturados
+- [x] Relatórios JSON
+- [x] Relatórios CSV
+- [x] Testes automatizados
+- [ ] GitHub Actions
+- [ ] Empacotamento como pacote Python
 
 ---
 
@@ -160,19 +177,6 @@ O projeto também exporta os registros coletados em JSON e CSV, sem alterar o fl
 ### Diretório padrão
 
 Os relatórios são gravados no diretório definido em `relatorios.diretorio`.
-
----
-
-## Roadmap
-
-Próximas melhorias que fazem sentido para evoluir o projeto:
-
-- [ ] Melhor compatibilidade com Linux
-- [ ] Exportação de relatórios (JSON/CSV)
-- [ ] Monitoramento contínuo
-- [ ] Alertas mais específicos por métrica
-- [ ] Dockerização da aplicação
-- [ ] Testes automatizados
 
 ---
 
