@@ -1,0 +1,27 @@
+{
+  "intervalo_coleta_segundos": 60,
+  "alertas": {
+    "cpu": {
+      "warning": 75,
+      "critical": 90
+    },
+    "memoria": {
+      "warning": 75,
+      "critical": 90
+    },
+    "disco": {
+      "warning": 80,
+      "critical": 90
+    }
+  },
+  "logs": {
+    "diretorio": "logs",
+    "arquivo": "logs/infromonitor.log",
+    "nivel": "INFO",
+    "max_bytes": 5242880,
+    "backup_count": 5
+  },
+  "relatorios": {
+    "diretorio": "reports"
+  }
+}
